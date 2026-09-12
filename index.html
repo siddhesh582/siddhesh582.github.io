@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="images/favicon.ico" type="image/x-icon">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Siddhesh Shingate — Robotics Perception Engineer</title>
+<meta name="description" content="Siddhesh Shingate — Robotics engineer working on perception, calibration, and autonomy systems, and why they fail in the real world.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg-deep:#14110D;
+    --bg-panel:#1C1812;
+    --bg-panel-raised:#241F17;
+    --line-contour:#3A3226;
+    --line-contour-soft:#26221A;
+    --fg-primary:#F2ECDF;
+    --fg-muted:#A79C89;
+    --fg-faint:#6E6353;
+    --accent-signal:#E8963E;
+    --accent-signal-dim:#5C4526;
+    --accent-warm:#6FA8C9;
+    --radius:2px;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    margin:0;
+    background:var(--bg-deep);
+    color:var(--fg-primary);
+    font-family:'Space Grotesk', sans-serif;
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; scroll-behavior:auto !important; }
+  }
+
+  h1,h2,h3,h4{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    margin:0;
+  }
+
+  .mono{ font-family:'JetBrains Mono', monospace; }
+
+  a{ color:inherit; }
+
+  /* ---------- calibration-grid background ---------- */
+  .calib-field{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    opacity:0.5;
+  }
+  .calib-field svg{ width:100%; height:100%; }
+
+  /* ---------- scroll gauge ---------- */
+  .scroll-gauge{
+    position:fixed;
+    top:0;
+    right:0;
+    height:100vh;
+    width:52px;
+    z-index:50;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    pointer-events:none;
+  }
+  .scroll-gauge-track{
+    position:relative;
+    width:1px;
+    height:70vh;
+    background:var(--line-contour);
+  }
+  .scroll-gauge-fill{
+    position:absolute;
+    top:0;
+    left:0;
+    width:1px;
+    height:0%;
+    background:var(--accent-signal);
+    transition:height 0.1s linear;
+  }
+  .scroll-gauge-marker{
+    position:absolute;
+    left:-3px;
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:var(--bg-deep);
+    border:1px solid var(--accent-signal);
+    transform:translateY(-50%);
+  }
+  @media (max-width:900px){
+    .scroll-gauge{ display:none; }
+  }
+
+  /* ---------- nav ---------- */
+  nav{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:40;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:22px 40px;
+    background:linear-gradient(to bottom, rgba(20,17,13,0.92), rgba(20,17,13,0));
+    backdrop-filter:blur(2px);
+  }
+  .nav-mark{
+    font-family:'Fraunces', serif;
+    font-size:20px;
+    letter-spacing:0.02em;
+  }
+  .nav-mark .dot{ color:var(--accent-signal); }
+  .nav-links{
+    display:flex;
+    gap:28px;
+    list-style:none;
+    margin:0; padding:0;
+  }
+  .nav-links a{
+    font-family:'JetBrains Mono', monospace;
+    font-size:14px;
+    letter-spacing:0.04em;
+    text-decoration:none;
+    color:var(--fg-muted);
+    transition:color 0.2s ease;
+    position:relative;
+  }
+  .nav-links a:hover, .nav-links a.active{ color:var(--accent-signal); }
+  .nav-links a.active::after{
+    content:'';
+    position:absolute;
+    left:0; right:0; bottom:-6px;
+    height:1px;
+    background:var(--accent-signal);
+  }
+  @media (max-width:700px){
+    .nav-links{ display:none; }
+  }
+
+  section{
+    position:relative;
+    z-index:1;
+    max-width:1200px;
+    margin:0 auto;
+    padding:120px 40px;
+  }
+  @media (max-width:700px){
+    section{ padding:90px 24px; }
+  }
+
+  /* ---------- hero ---------- */
+  .hero{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+  }
+  .hero-eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.1em;
+    color:var(--accent-signal);
+    margin-bottom:22px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .hero-eyebrow::before{
+    content:'';
+    display:inline-block;
+    width:22px;
+    height:1px;
+    background:var(--accent-signal);
+  }
+  .hero h1{
+    font-size:clamp(42px, 7vw, 76px);
+    line-height:1.03;
+    letter-spacing:-0.01em;
+    color:var(--fg-primary);
+  }
+  .hero-tagline{
+    margin-top:26px;
+    max-width:580px;
+    font-size:18px;
+    color:var(--fg-muted);
+    line-height:1.7;
+  }
+  .hero-tagline strong{
+    color:var(--fg-primary);
+    font-weight:500;
+  }
+  .hero-links{
+    margin-top:40px;
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .hero-links a{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:44px;
+    height:44px;
+    color:var(--fg-primary);
+    border:1px solid var(--line-contour);
+    border-radius:50%;
+    transition:border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  }
+  .hero-links a svg{
+    width:18px;
+    height:18px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.6;
+  }
+  .hero-links a:hover{ border-color:var(--accent-signal); color:var(--accent-signal); background:var(--bg-panel); }
+
+  .scroll-cue{
+    position:absolute;
+    bottom:40px;
+    left:40px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    color:var(--fg-faint);
+    letter-spacing:0.1em;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .scroll-cue-line{
+    width:1px;
+    height:34px;
+    background:linear-gradient(to bottom, var(--accent-signal), transparent);
+  }
+
+  /* ---------- section headers ---------- */
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    gap:18px;
+    margin-bottom:56px;
+  }
+  .section-num{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    color:var(--accent-warm);
+  }
+  .section-head h2{
+    font-size:48px;
+    color:var(--fg-primary);
+  }
+  .section-rule{
+    flex:1;
+    height:1px;
+    background:var(--line-contour);
+  }
+
+  /* ---------- about ---------- */
+  .about-grid{
+    display:grid;
+    grid-template-columns:240px 1fr;
+    gap:48px;
+    align-items:start;
+  }
+  @media (max-width:700px){
+    .about-grid{ grid-template-columns:1fr; }
+  }
+  .about-photo{
+    width:240px;
+    height:300px;
+    border:1px solid var(--line-contour);
+    background:var(--bg-panel);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    color:var(--fg-faint);
+    letter-spacing:0.05em;
+    text-align:center;
+    padding:16px;
+    overflow:hidden;
+  }
+  .about-photo img{ width:100%; height:100%; object-fit:cover; }
+  .about-body p{
+    color:var(--fg-muted);
+    margin:0 0 18px 0;
+  }
+  .about-body strong{ color:var(--fg-primary); font-weight:500; }
+
+  /* ---------- experience log ---------- */
+  .log-entry{
+    display:grid;
+    grid-template-columns:120px 1fr;
+    gap:32px;
+    padding:36px 0;
+    border-bottom:1px solid var(--line-contour);
+  }
+  .log-entry:first-of-type{ padding-top:0; }
+  @media (max-width:700px){
+    .log-entry{ grid-template-columns:1fr; gap:12px; }
+  }
+  .log-metric{ font-family:'JetBrains Mono', monospace; }
+  .log-metric .val{
+    font-size:22px;
+    color:var(--accent-signal);
+    display:block;
+  }
+  .log-metric .unit{
+    font-size:10px;
+    color:var(--fg-faint);
+    letter-spacing:0.05em;
+    display:block;
+    margin-top:4px;
+  }
+  .log-role{
+    font-size:19px;
+    color:var(--fg-primary);
+    margin-bottom:4px;
+  }
+  .log-meta{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--fg-faint);
+    letter-spacing:0.02em;
+    margin-bottom:16px;
+  }
+  .log-body p{
+    color:var(--fg-muted);
+    margin:0 0 14px 0;
+  }
+  .log-body p:last-of-type{ margin-bottom:16px; }
+  .tech-tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .tech-tags span{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.02em;
+    color:var(--fg-muted);
+    border:1px solid var(--line-contour);
+    padding:4px 9px;
+    border-radius:var(--radius);
+  }
+
+  /* ---------- projects ---------- */
+  .project-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:24px;
+  }
+  @media (max-width:900px){
+    .project-grid{ grid-template-columns:1fr 1fr; }
+  }
+  @media (max-width:600px){
+    .project-grid{ grid-template-columns:1fr; }
+  }
+  .project-card{
+    background:var(--bg-panel);
+    border:1px solid var(--line-contour);
+    padding:30px;
+    display:flex;
+    flex-direction:column;
+  }
+  .project-media{
+    width:100%;
+    aspect-ratio:16/9;
+    background:var(--bg-panel-raised);
+    border:1px solid var(--line-contour);
+    margin-bottom:20px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+  }
+  .project-media img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .project-media-placeholder{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    color:var(--fg-faint);
+    letter-spacing:0.03em;
+    text-align:center;
+    padding:16px;
+  }
+  .project-card h3{
+    font-size:16px;
+    color:var(--fg-primary);
+    margin-bottom:6px;
+  }
+  .project-date{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    color:var(--fg-faint);
+    letter-spacing:0.03em;
+    margin-bottom:14px;
+    display:block;
+  }
+  .project-card p{
+    color:var(--fg-muted);
+    font-size:15px;
+    margin:0;
+    flex:1;
+  }
+  .project-link{
+    display:inline-block;
+    margin-top:16px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    letter-spacing:0.03em;
+    text-decoration:none;
+    color:var(--accent-signal);
+    border-bottom:1px solid var(--accent-signal-dim);
+    padding-bottom:3px;
+  }
+  .project-link:hover{ border-color:var(--accent-signal); }
+
+  /* ---------- skills ---------- */
+  .skill-group{
+    padding:22px 0;
+    border-bottom:1px solid var(--line-contour);
+    display:grid;
+    grid-template-columns:190px 1fr;
+    gap:24px;
+  }
+  .skill-group:first-of-type{ padding-top:0; }
+  @media (max-width:700px){
+    .skill-group{ grid-template-columns:1fr; gap:10px; }
+  }
+  .skill-group-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.03em;
+    color:var(--fg-faint);
+  }
+  .skill-tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .skill-tags span{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    color:var(--fg-muted);
+    border:1px solid var(--line-contour);
+    padding:5px 10px;
+    border-radius:var(--radius);
+  }
+
+  /* ---------- education ---------- */
+  .edu-entry{
+    padding:20px 0;
+    border-bottom:1px solid var(--line-contour);
+  }
+  .edu-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  .edu-school{ color:var(--fg-primary); font-size:18px; }
+  .edu-degree{ color:var(--fg-muted); font-size:16px; margin-top:2px; }
+  .edu-date{ font-family:'JetBrains Mono', monospace; font-size:14px; color:var(--fg-faint); }
+  .edu-focus{
+    margin-top:10px;
+    font-size:14px;
+    color:var(--fg-faint);
+    line-height:1.7;
+  }
+
+  /* ---------- footer ---------- */
+  footer{
+    position:relative;
+    z-index:1;
+    max-width:1200px;
+    margin:0 auto;
+    padding:80px 40px 100px;
+    text-align:center;
+  }
+  footer h2{ font-size:34px; margin-bottom:20px; }
+  footer p{
+    color:var(--fg-muted);
+    max-width:440px;
+    margin:0 auto 32px;
+  }
+  .footer-links{
+    display:flex;
+    justify-content:center;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .footer-links a{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:44px;
+    height:44px;
+    color:var(--fg-primary);
+    border:1px solid var(--line-contour);
+    border-radius:50%;
+    transition:border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  }
+  .footer-links a svg{
+    width:18px;
+    height:18px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.6;
+  }
+  .footer-links a:hover{ border-color:var(--accent-signal); color:var(--accent-signal); background:var(--bg-panel); }
+  .footer-note{
+    margin-top:60px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    color:var(--fg-faint);
+    letter-spacing:0.03em;
+  }
+  .footer-signature{
+    margin-top:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    color:var(--fg-faint);
+  }
+  .footer-signature strong{ color:var(--fg-primary); font-weight:500; }
+</style>
+</head>
+<body>
+
+<div class="calib-field" aria-hidden="true">
+  <svg viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <pattern id="checker" width="90" height="90" patternUnits="userSpaceOnUse" patternTransform="rotate(8)">
+        <rect width="90" height="90" fill="none"/>
+        <rect x="0" y="0" width="45" height="45" fill="#3A3226" opacity="0.35"/>
+        <rect x="45" y="45" width="45" height="45" fill="#3A3226" opacity="0.35"/>
+        <circle cx="22.5" cy="22.5" r="2.4" fill="#E8963E" opacity="0.5"/>
+        <circle cx="67.5" cy="67.5" r="2.4" fill="#E8963E" opacity="0.5"/>
+      </pattern>
+      <radialGradient id="fade" cx="50%" cy="35%" r="75%">
+        <stop offset="0%" stop-color="#14110D" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#14110D" stop-opacity="0.85"/>
+      </radialGradient>
+    </defs>
+    <rect width="1000" height="1000" fill="url(#checker)"/>
+    <rect width="1000" height="1000" fill="url(#fade)"/>
+  </svg>
+</div>
+
+<div class="scroll-gauge" aria-hidden="true">
+  <div class="scroll-gauge-track" id="gaugeTrack">
+    <div class="scroll-gauge-fill" id="gaugeFill"></div>
+  </div>
+</div>
+
+<nav>
+  <div class="nav-mark">SIDDHESH SHINGATE<span class="dot">.</span></div>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#about" data-section="about">About</a></li>
+    <li><a href="#experience" data-section="experience">Experience</a></li>
+    <li><a href="#projects" data-section="projects">Projects</a></li>
+    <li><a href="#skills" data-section="skills">Skills</a></li>
+    <li><a href="#education" data-section="education">Education</a></li>
+  </ul>
+</nav>
+
+<section class="hero" id="home">
+  <div class="hero-eyebrow">ROBOTICS · PERCEPTION · AUTONOMY</div>
+  <h1>Robotics Perception Engineer</h1>
+  <p class="hero-tagline">
+    MS Robotics candidate at Northeastern University's Institute for Experiential Robotics.
+    I work on perception and autonomy systems — mostly on <strong>why they fail in the real world,
+    and how to make them fail less.</strong> I started in mechatronics, which taught me a robot is never
+    just software or hardware — the interesting problems sit at the boundary between sensing,
+    mechanics, and computation.
+  </p>
+  <div class="hero-links">
+    <a href="mailto:siddheshshingate3@gmail.com" aria-label="Email" title="Email">
+      <svg viewBox="0 0 24 24"><path d="M3 6h18v12H3z"/><path d="M3 7l9 6 9-6"/></svg>
+    </a>
+    <a href="tel:+18573398805" aria-label="Call" title="Call">
+      <svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.7a2 2 0 01-.4 2.1L8 9.9a16 16 0 006 6l1.4-1.4a2 2 0 012.1-.4c.9.3 1.8.5 2.7.6a2 2 0 011.8 2z"/></svg>
+    </a>
+    <a href="https://www.linkedin.com/in/siddhesh-shingate/" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn">
+      <svg viewBox="0 0 24 24"><path d="M6.94 8.5H3.56V20.4h3.38V8.5zM5.25 3.6a1.96 1.96 0 100 3.92 1.96 1.96 0 000-3.92zM20.4 13.4c0-3.2-1.7-4.7-4-4.7-1.83 0-2.65 1-3.1 1.72V8.5H9.94c.04.94 0 11.9 0 11.9h3.36v-6.64c0-.36.03-.72.13-.97.29-.72.95-1.47 2.05-1.47 1.45 0 2.03 1.1 2.03 2.72v6.36h3.38l.01-6.6z"/></svg>
+    </a>
+    <a href="https://github.com/Siddhesh582" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49 0-.24-.01-1.04-.01-1.88-2.78.61-3.37-1.21-3.37-1.21-.46-1.18-1.11-1.5-1.11-1.5-.91-.63.07-.62.07-.62 1 .07 1.53 1.05 1.53 1.05.89 1.55 2.34 1.1 2.91.84.09-.66.35-1.1.63-1.36-2.22-.26-4.56-1.14-4.56-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.73 0 0 .84-.27 2.75 1.05a9.3 9.3 0 015 0c1.9-1.32 2.75-1.05 2.75-1.05.55 1.42.2 2.47.1 2.73.64.72 1.03 1.63 1.03 2.75 0 3.93-2.34 4.79-4.57 5.05.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .27.18.6.69.49A10.26 10.26 0 0022 12.25C22 6.58 17.52 2 12 2z"/></svg>
+    </a>
+    <a href="https://youtube.com/@siddheshshingate3457" target="_blank" rel="noopener" aria-label="YouTube" title="YouTube">
+      <svg viewBox="0 0 24 24"><path d="M22 12s0-3.4-.4-5a2.8 2.8 0 00-2-2C17.9 4.5 12 4.5 12 4.5s-5.9 0-7.6.5a2.8 2.8 0 00-2 2C2 8.6 2 12 2 12s0 3.4.4 5a2.8 2.8 0 002 2c1.7.5 7.6.5 7.6.5s5.9 0 7.6-.5a2.8 2.8 0 002-2c.4-1.6.4-5 .4-5z"/><path d="M10 9.5l5 2.5-5 2.5z" fill="currentColor" stroke="none"/></svg>
+    </a>
+    <a href="https://scholar.google.com/citations?user=_cO_ma4AAAAJ&hl=en" target="_blank" rel="noopener" aria-label="Google Scholar" title="Google Scholar">
+      <svg viewBox="0 0 24 24"><path d="M12 3L2 9l10 6 8-4.8V17h2V9z"/><path d="M6 12.5V17c0 2 3 4 6 4s6-2 6-4v-4.5"/></svg>
+    </a>
+    <a href="docs/Resume_SiddheshShingate.pdf" target="_blank" rel="noopener" aria-label="Resume (PDF)" title="Resume (PDF)">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg>
+    </a>
+  </div>
+  <div class="scroll-cue">
+    <div class="scroll-cue-line"></div>
+    <span>SCROLL</span>
+  </div>
+</section>
+
+<section id="about">
+  <div class="section-head">
+    <span class="section-num">01</span>
+    <h2>About</h2>
+    <div class="section-rule"></div>
+  </div>
+  <div class="about-grid">
+    <div class="about-photo">
+      <img src="images/portfolio_image.jpg" alt="Siddhesh Shingate" onerror="this.parentElement.innerHTML='ADD PHOTO:<br>images/portfolio_image.jpg'">
+    </div>
+    <div class="about-body">
+      <p>
+        I'm interested in perception and autonomy systems — specifically in understanding why they
+        fail out in the real world, and what it takes to make them more reliable.
+      </p>
+      <p>
+        I started out in mechatronics, and that shaped how I still think about robotics: a robot is
+        never just software or hardware, and the interesting problems almost always sit at the
+        boundary between sensing, mechanics, and computation.
+      </p>
+      <p>
+        During my Master's at <strong>Northeastern University's Field Robotics Lab</strong>, I built an
+        asynchronous stereo camera calibration pipeline and dug into the failure modes of ORB-SLAM3 on
+        a quadruped robot. I like getting into sensor logs and reading through source code until I
+        actually understand what's happening — then validating that understanding against real robot
+        data.
+      </p>
+      <p>
+        Outside of research, I've built projects across localization, SLAM, 3D reconstruction, motion
+        planning, and reinforcement learning. Different problems, same approach each time: understand
+        the system, isolate the root cause, and build something that holds up.
+      </p>
+      <p>
+        Currently looking for roles in robotics perception, localization, sensor fusion, and autonomous
+        systems — building and validating robotics software on real platforms.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section id="experience">
+  <div class="section-head">
+    <span class="section-num">02</span>
+    <h2>Experience</h2>
+    <div class="section-rule"></div>
+  </div>
+
+  <div class="log-entry">
+    <div class="log-metric">
+      <span class="val">01</span>
+      <span class="unit">Research</span>
+    </div>
+    <div>
+      <div class="log-role">Robotics Research Assistant</div>
+      <div class="log-meta">FIELD ROBOTICS LAB, NORTHEASTERN UNIVERSITY · BOSTON, MA · MAY 2025–MAY 2026</div>
+      <div class="log-body">
+        <p>
+          Worked on perception and sensor fusion problems for field robots — mainly designing, building,
+          and validating a calibration pipeline for asynchronous stereo cameras, and deploying and
+          debugging visual-inertial SLAM on quadruped robots in challenging environments.
+        </p>
+        <p>
+          Handled multi-sensor data processing and evaluation across LiDAR, camera, GPS, and IMU on
+          Linux, ROS2, Python, and C++, with hands-on time on Unitree G1, Go2W, and Go2, and Boston
+          Dynamics Spot.
+        </p>
+      </div>
+      <div class="tech-tags">
+        <span>ROS2</span><span>Kalibr</span><span>ORB-SLAM3</span><span>Sensor fusion</span><span>Linux / C++ / Python</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="log-entry">
+    <div class="log-metric">
+      <span class="val">02</span>
+      <span class="unit">Teaching</span>
+    </div>
+    <div>
+      <div class="log-role">Graduate Teaching Assistant — Robotics Sensing and Navigation</div>
+      <div class="log-meta">NORTHEASTERN UNIVERSITY · BOSTON, MA · JAN.–MAY 2026</div>
+      <div class="log-body">
+        <p>
+          Mentored 90+ students building and debugging robot perception and state-estimation pipelines
+          in Python, C++, and ROS2 — GNSS/IMU/camera integration, calibration workflows, and real-time
+          debugging. Maintained the course's ROS2 infrastructure and Git repository.
+        </p>
+      </div>
+      <div class="tech-tags">
+        <span>GNSS / IMU / Camera</span><span>ROS2</span><span>Calibration</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="log-entry">
+    <div class="log-metric">
+      <span class="val">03</span>
+      <span class="unit">Volunteer</span>
+    </div>
+    <div>
+      <div class="log-role">Technical Volunteer, InfinityX</div>
+      <div class="log-meta">MAHARASHTRA, INDIA · SEP. 2023</div>
+      <div class="log-body">
+        <p>
+          Mentored engineering students in AR-based 3D visualization workflows (Vuforia Studio, Unity,
+          Creo) for interactive asset modeling and animation during a 10-day IoT and AR/VR workshop.
+        </p>
+      </div>
+      <div class="tech-tags">
+        <span>Vuforia Studio</span><span>Unity</span><span>Creo</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="projects">
+  <div class="section-head">
+    <span class="section-num">03</span>
+    <h2>Projects</h2>
+    <div class="section-rule"></div>
+  </div>
+  <div class="project-grid">
+    <div class="project-card">
+      <div class="project-media">
+        <img src="images/stereo-calibration.jpg" alt="Stereo camera calibration" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/stereo-calibration.jpg</div>'">
+      </div>
+      <h3>Spatiotemporal Calibration of Asynchronous Stereo Cameras</h3>
+      <span class="project-date">May 2026</span>
+      <p>
+        Calibration pipeline for a pair of FLIR Blackfly S cameras that aren't hardware-synced —
+        recovering both the spatial extrinsics and the time offset between the two streams using
+        AprilTag targets, SE(3) and Lie-group formulations, and continuous-time estimation in ROS2/Kalibr.
+      </p>
+    </div>
+    <div class="project-card">
+      <div class="project-media">
+        <img src="images/g1reach.jpg" alt="G1Reach reinforcement learning" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/g1reach.jpg</div>'">
+      </div>
+      <h3>G1Reach: End-Effector Control via Reinforcement Learning</h3>
+      <span class="project-date">May 2026</span>
+      <p>
+        Trained a PPO policy with GAE and domain randomization in MuJoCo to drive end-effector reach
+        control on the Unitree G1 humanoid, mapping policy outputs to PD torque control on the real
+        joint stack.
+      </p>
+      <a class="project-link" href="https://github.com/Siddhesh582/G1Reach.git" target="_blank" rel="noopener">View code →</a>
+    </div>
+    <div class="project-card">
+      <div class="project-media">
+        <img src="images/photomosaic-slam.jpg" alt="Underwater photomosaic SLAM" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/photomosaic-slam.jpg</div>'">
+      </div>
+      <h3>Pose Graph SLAM for Underwater Photomosaicing</h3>
+      <span class="project-date">September 2025</span>
+      <p>
+        SIFT feature matching and RANSAC-based homography estimation between overlapping seafloor
+        images, folded into a GTSAM pose graph to correct drift and stitch a consistent photomosaic
+        of the seafloor.
+      </p>
+      <a class="project-link" href="https://github.com/Siddhesh582/UnderwaterPhotomosaicing_SLAM" target="_blank" rel="noopener">View code →</a>
+    </div>
+    <div class="project-card">
+      <div class="project-media">
+        <img src="images/sfm.jpg" alt="Structure from motion" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/sfm.jpg</div>'">
+      </div>
+      <h3>Multi-View 3D Reconstruction — SfM</h3>
+      <span class="project-date">December 2025</span>
+      <p>
+        Full structure-from-motion pipeline: SIFT matching, RANSAC-based fundamental matrix estimation,
+        SVD and DLT triangulation, and GTSAM bundle adjustment to recover 3D structure from multi-view
+        image sets.
+      </p>
+      <a class="project-link" href="https://github.com/Siddhesh582/StructurefromMotion_pipeline.git" target="_blank" rel="noopener">View code →</a>
+    </div>
+    <div class="project-card">
+      <div class="project-media">
+        <img src="images/ekf-localization.jpg" alt="EKF vehicle localization" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/ekf-localization.jpg</div>'">
+      </div>
+      <h3>Robust Vehicle Localization Using EKF: GPS-Denied Environments</h3>
+      <span class="project-date">September 2025</span>
+      <p>
+        Extended Kalman Filter fusing IMU and intermittent GPS to keep a vehicle localized through
+        GPS dropouts, bridging the gaps with dead-reckoning propagation between fixes.
+      </p>
+      <a class="project-link" href="https://github.com/Siddhesh582/GPS-IMU_SensorFusion_EKF" target="_blank" rel="noopener">View code →</a>
+    </div>
+    <div class="project-card">
+      <div class="project-media">
+        <img src="images/frenet-mpc.jpg" alt="Frenet-frame MPC" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/frenet-mpc.jpg</div>'">
+      </div>
+      <h3>Cartesian-Frenet Based Nonlinear Model Predictive Controller</h3>
+      <span class="project-date">April 2025</span>
+      <p>
+        Dual-frame nonlinear MPC for trajectory tracking, formulated in CasADi/IPOPT and compared
+        across Cartesian and Frenet-frame dynamics to weigh tracking accuracy against solver cost.
+      </p>
+      <a class="project-link" href="https://github.com/Siddhesh582/Cartesian-Frenet-based-MPC" target="_blank" rel="noopener">View code →</a>
+    </div>
+    <div class="project-card">
+      <div class="project-media">
+        <img src="images/dqn-carracing.jpg" alt="DQN autonomous driving" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/dqn-carracing.jpg</div>'">
+      </div>
+      <h3>Autonomous Driving with DQN in Gymnasium CarRacing</h3>
+      <span class="project-date">April 2025</span>
+      <p>
+        CNN-based Deep Q-Network trained end-to-end on pixel observations in OpenAI Gymnasium's
+        CarRacing environment to learn a driving policy from raw visual input.
+      </p>
+      <a class="project-link" href="https://github.com/PranavViswanathan/NeuroPilot" target="_blank" rel="noopener">View code →</a>
+    </div>
+    <div class="project-card">
+      <div class="project-media">
+        <img src="images/dead-reckoning.jpg" alt="Dead reckoning IMU-GPS" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/dead-reckoning.jpg</div>'">
+      </div>
+      <h3>Dead Reckoning &amp; Sensor Evaluation of IMU-GPS</h3>
+      <span class="project-date">October 2024</span>
+      <p>
+        Magnetometer calibration to remove hard- and soft-iron distortion, then a complementary filter
+        combining gyroscope and magnetometer readings for stable heading estimation between GNSS fixes.
+      </p>
+      <a class="project-link" href="https://github.com/Siddhesh582/Dead-Reckoning---Sensor-Evaluation-w--IMU-and-GPS" target="_blank" rel="noopener">View code →</a>
+    </div>
+    <div class="project-card">
+      <div class="project-media">
+        <img src="images/tunnel-mapping.jpg" alt="Northeastern tunnel mapping" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/tunnel-mapping.jpg</div>'">
+      </div>
+      <h3>3D Visual Mapping of Northeastern Underground Tunnels</h3>
+      <span class="project-date">October 2024</span>
+      <p>
+        RGB-D SLAM with RTAB-Map, fusing IMU data and closing loops with G2O pose-graph optimization
+        to reconstruct a 3D map of Northeastern's underground tunnel network.
+      </p>
+      <a class="project-link" href="https://github.com/Siddhesh582/3D-Mapping-of-Northeastern-Tunnels.git" target="_blank" rel="noopener">View code →</a>
+    </div>
+  </div>
+</section>
+
+<section id="skills">
+  <div class="section-head">
+    <span class="section-num">04</span>
+    <h2>Skills</h2>
+    <div class="section-rule"></div>
+  </div>
+  <div class="skill-group">
+    <div class="skill-group-label">LANGUAGES &amp; FRAMEWORKS</div>
+    <div class="skill-tags">
+      <span>Python</span><span>C++</span><span>ROS2</span><span>MATLAB</span><span>Git</span><span>Linux</span><span>Docker</span>
+    </div>
+  </div>
+  <div class="skill-group">
+    <div class="skill-group-label">LIBRARIES &amp; TOOLS</div>
+    <div class="skill-tags">
+      <span>OpenCV</span><span>GTSAM</span><span>PyTorch</span><span>TensorFlow</span><span>CasADi / IPOPT</span><span>Open3D</span><span>CUDA</span><span>Gymnasium</span><span>Kalibr</span><span>COLMAP</span><span>Gazebo</span><span>Isaac Sim</span><span>MuJoCo</span><span>Foxglove</span>
+    </div>
+  </div>
+  <div class="skill-group">
+    <div class="skill-group-label">HARDWARE</div>
+    <div class="skill-tags">
+      <span>u-blox GNSS (GPS/RTK)</span><span>VectorNav VN-100 IMU</span><span>FLIR Blackfly S</span><span>RealSense D435i</span><span>Unitree Hesai LiDAR</span><span>Boston Dynamics Spot</span><span>Unitree G1 / Go2W / Go2</span>
+    </div>
+  </div>
+  <div class="skill-group">
+    <div class="skill-group-label">PROFICIENCIES</div>
+    <div class="skill-tags">
+      <span>SLAM</span><span>Multi-sensor fusion</span><span>Visual-inertial odometry</span><span>State estimation</span><span>3D reconstruction</span><span>Factor graph optimization</span><span>Computer vision</span><span>Kalman filtering</span><span>Model predictive control</span><span>Reinforcement learning</span><span>CNNs</span><span>Perception</span><span>Localization</span>
+    </div>
+  </div>
+</section>
+
+<section id="education">
+  <div class="section-head">
+    <span class="section-num">05</span>
+    <h2>Education</h2>
+    <div class="section-rule"></div>
+  </div>
+  <div class="edu-entry">
+    <div class="edu-top">
+      <div>
+        <div class="edu-school">Northeastern University, Boston, MA</div>
+        <div class="edu-degree">Master of Science in Robotics · CGPA 3.70 / 4.00</div>
+      </div>
+      <div class="edu-date">Sept. 2024 – May 2026</div>
+    </div>
+    <div class="edu-focus">
+      Focus: Robotics Sensing and Navigation · Mobile Robotics · Robot Mechanics and Control ·
+      Foundations of Artificial Intelligence · Autonomous Field Robots · Robotic Science and Systems ·
+      Reinforcement Learning · Master's Project
+    </div>
+  </div>
+  <div class="edu-entry">
+    <div class="edu-top">
+      <div>
+        <div class="edu-school">Manipal University Jaipur, Jaipur, India</div>
+        <div class="edu-degree">Bachelor of Technology in Mechatronics Engineering · CGPA 3.41 / 4.00</div>
+      </div>
+      <div class="edu-date">July 2019 – June 2023</div>
+    </div>
+    <div class="edu-focus">
+      Focus: Robot Path Planning and Control · Autonomous Robots · Machine Vision and Image Processing ·
+      Control Systems · Sensors and Instrumentation · Microcontroller-Based System Design
+    </div>
+  </div>
+</section>
+
+<footer id="contact">
+  <h2>Let's talk robots.</h2>
+  <p>Open to full-time roles in robotics perception, localization, sensor fusion, and autonomy.</p>
+  <div class="footer-links">
+    <a href="mailto:siddheshshingate3@gmail.com" aria-label="Email" title="Email">
+      <svg viewBox="0 0 24 24"><path d="M3 6h18v12H3z"/><path d="M3 7l9 6 9-6"/></svg>
+    </a>
+    <a href="tel:+18573398805" aria-label="Call" title="Call">
+      <svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.7a2 2 0 01-.4 2.1L8 9.9a16 16 0 006 6l1.4-1.4a2 2 0 012.1-.4c.9.3 1.8.5 2.7.6a2 2 0 011.8 2z"/></svg>
+    </a>
+    <a href="https://www.linkedin.com/in/siddhesh-shingate/" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn">
+      <svg viewBox="0 0 24 24"><path d="M6.94 8.5H3.56V20.4h3.38V8.5zM5.25 3.6a1.96 1.96 0 100 3.92 1.96 1.96 0 000-3.92zM20.4 13.4c0-3.2-1.7-4.7-4-4.7-1.83 0-2.65 1-3.1 1.72V8.5H9.94c.04.94 0 11.9 0 11.9h3.36v-6.64c0-.36.03-.72.13-.97.29-.72.95-1.47 2.05-1.47 1.45 0 2.03 1.1 2.03 2.72v6.36h3.38l.01-6.6z"/></svg>
+    </a>
+    <a href="https://github.com/Siddhesh582" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49 0-.24-.01-1.04-.01-1.88-2.78.61-3.37-1.21-3.37-1.21-.46-1.18-1.11-1.5-1.11-1.5-.91-.63.07-.62.07-.62 1 .07 1.53 1.05 1.53 1.05.89 1.55 2.34 1.1 2.91.84.09-.66.35-1.1.63-1.36-2.22-.26-4.56-1.14-4.56-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.73 0 0 .84-.27 2.75 1.05a9.3 9.3 0 015 0c1.9-1.32 2.75-1.05 2.75-1.05.55 1.42.2 2.47.1 2.73.64.72 1.03 1.63 1.03 2.75 0 3.93-2.34 4.79-4.57 5.05.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .27.18.6.69.49A10.26 10.26 0 0022 12.25C22 6.58 17.52 2 12 2z"/></svg>
+    </a>
+    <a href="https://scholar.google.com/citations?user=_cO_ma4AAAAJ&hl=en" target="_blank" rel="noopener" aria-label="Google Scholar" title="Google Scholar">
+      <svg viewBox="0 0 24 24"><path d="M12 3L2 9l10 6 8-4.8V17h2V9z"/><path d="M6 12.5V17c0 2 3 4 6 4s6-2 6-4v-4.5"/></svg>
+    </a>
+  </div>
+  <div class="footer-note">BOSTON, MA — LAST UPDATED SEP 2026</div>
+  <div class="footer-signature">
+    <span>Site by <strong>Siddhesh Shingate</strong></span>
+  </div>
+</footer>
+
+<script>
+  const sections = ['about','experience','projects','skills','education'];
+  const navLinks = document.querySelectorAll('.nav-links a');
+  const gaugeFill = document.getElementById('gaugeFill');
+  const gaugeTrack = document.getElementById('gaugeTrack');
+
+  sections.forEach((id, i) => {
+    const marker = document.createElement('div');
+    marker.className = 'scroll-gauge-marker';
+    marker.style.top = ((i+1) / (sections.length+1) * 100) + '%';
+    gaugeTrack.appendChild(marker);
+  });
+
+  function onScroll(){
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = Math.min(100, Math.max(0, (scrollTop / docHeight) * 100));
+    gaugeFill.style.height = pct + '%';
+
+    let current = 'home';
+    for(const id of sections){
+      const el = document.getElementById(id);
+      if(el){
+        const rect = el.getBoundingClientRect();
+        if(rect.top < window.innerHeight * 0.4){
+          current = id;
+        }
+      }
+    }
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.dataset.section === current);
+    });
+  }
+  window.addEventListener('scroll', onScroll, { passive:true });
+  onScroll();
+</script>
+
+</body>
+</html>
