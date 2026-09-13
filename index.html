@@ -146,17 +146,18 @@
     font-size:14px;
     letter-spacing:0.04em;
     text-decoration:none;
-    color:var(--fg-muted);
-    transition:color 0.2s ease;
+    color:#C48A80;
+    opacity:0.82;
+    transition:opacity 0.2s ease, color 0.2s ease;
     position:relative;
   }
-  .nav-links a:hover, .nav-links a.active{ color:var(--accent-signal); }
+  .nav-links a:hover, .nav-links a.active{ opacity:1; }
   .nav-links a.active::after{
     content:'';
     position:absolute;
     left:0; right:0; bottom:-6px;
     height:1px;
-    background:var(--accent-signal);
+    background:#C48A80;
   }
   @media (max-width:700px){
     .nav-links{ display:none; }
@@ -1130,29 +1131,26 @@
     </div>
     <div class="about-body">
       <p>
-        I'm interested in perception and autonomy systems — specifically in understanding why they
-        fail out in the real world, and what it takes to make them more reliable.
+        Robotics has always been a mix of curiosity and problem solving for me — 
+        figuring out how a machine can make sense of the world, move through it, 
+        and keep doing the right thing when reality gets in the way.
       </p>
       <p>
-        I started out in mechatronics, and that shaped how I still think about robotics: a robot is
-        never just software or hardware, and the interesting problems almost always sit at the
-        boundary between sensing, mechanics, and computation.
+        That curiosity started with mechatronics and pulled me toward the software side of robotics, 
+        where sensing, perception, estimation, and control come together. I've worked with cameras, LiDAR, GPS, 
+        IMUs, and different robotic platforms, learning that the most interesting challenges often emerge where these systems interact.
       </p>
       <p>
-        During my Master's at <strong>Northeastern University's Field Robotics Lab</strong>, I built an
-        asynchronous stereo camera calibration pipeline and dug into the failure modes of ORB-SLAM3 on
-        a quadruped robot. I like getting into sensor logs and reading through source code until I
-        actually understand what's happening — then validating that understanding against real robot
-        data.
+        At <strong>Northeastern University's Field Robotics Lab</strong>, I've built an asynchronous stereo camera calibration system, 
+        developed perception and localization solutions across multiple sensors, 
+        and deployed robotics software on platforms including Unitree and Boston Dynamics Spot. 
+        Beyond research, I've built systems involving SLAM, 3D reconstruction, motion planning, and reinforcement learning.
       </p>
       <p>
-        Outside of research, I've built projects across localization, SLAM, 3D reconstruction, motion
-        planning, and reinforcement learning. Different problems, same approach each time: understand
-        the system, isolate the root cause, and build something that holds up.
+        Different problems, same approach: build something, see where it breaks, understand why, and make it better.
       </p>
       <p>
-        Currently looking for roles in robotics perception, localization, sensor fusion, and autonomous
-        systems — building and validating robotics software on real platforms.
+        Outside of robotics, you'll find me exploring new music, stargazing, searching for satellites in the night sky, or thinking about my dream car.
       </p>
     </div>
   </div>
@@ -1248,52 +1246,52 @@
   <div class="project-grid">
     <div class="project-card">
       <div class="project-media">
-        <img src="images/stereo-calibration.jpg" alt="Stereo camera calibration" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/stereo-calibration.jpg</div>'">
+        <img src="images/NeuROAM.jpg" alt="Asynchronous Stereo Camera Calibration" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/stereo-calibration.jpg</div>'">
       </div>
-      <h3>Spatiotemporal Calibration of Asynchronous Stereo Cameras</h3>
+      <h3>Asynchronous Stereo Camera Calibration</h3>
       <span class="project-date">May 2026</span>
       <p>
-        Calibration pipeline for a pair of FLIR Blackfly S cameras that aren't hardware-synced —
-        recovering both the spatial extrinsics and the time offset between the two streams using
-        AprilTag targets, SE(3) and Lie-group formulations, and continuous-time estimation in ROS2/Kalibr.
+        Calibration pipeline for a pair of unsynchronized stereo cameras — jointly estimating the
+        temporal offset and SE(3) extrinsics using AprilTag targets, continuous-time trajectory
+        estimation, Lie-group formulations, and nonlinear optimization in ROS2.
       </p>
     </div>
     <div class="project-card">
       <div class="project-media">
-        <img src="images/g1reach.jpg" alt="G1Reach reinforcement learning" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/g1reach.jpg</div>'">
+        <img src="videos/G1 demo.gif" alt="G1Reach RL" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/g1reach.jpg</div>'">
       </div>
-      <h3>G1Reach: End-Effector Control via Reinforcement Learning</h3>
+      <h3>G1Reach</h3>
       <span class="project-date">May 2026</span>
       <p>
-        Trained a PPO policy with GAE and domain randomization in MuJoCo to drive end-effector reach
-        control on the Unitree G1 humanoid, mapping policy outputs to PD torque control on the real
-        joint stack.
+        PPO-based controller for the Unitree G1 right arm manipulator — training a 29-DOF policy with
+        GAE in MuJoCo using proprioceptive observations and domain randomization for robust target
+        reaching.
       </p>
       <a class="project-link" href="https://github.com/Siddhesh582/G1Reach.git" target="_blank" rel="noopener">View code →</a>
     </div>
     <div class="project-card">
       <div class="project-media">
-        <img src="images/photomosaic-slam.jpg" alt="Underwater photomosaic SLAM" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/photomosaic-slam.jpg</div>'">
+        <img src="images/Underwater PoseSLAM.png" alt="Underwater photomosaic SLAM" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/photomosaic-slam.jpg</div>'">
       </div>
-      <h3>Pose Graph SLAM for Underwater Photomosaicing</h3>
+      <h3>Underwater Photomosaic & Pose-Graph SLAM</h3>
       <span class="project-date">September 2025</span>
       <p>
-        SIFT feature matching and RANSAC-based homography estimation between overlapping seafloor
-        images, folded into a GTSAM pose graph to correct drift and stitch a consistent photomosaic
-        of the seafloor.
+        Pose-graph SLAM pipeline for large-scale underwater imagery — estimating relative poses,
+        detecting loop closures, and optimizing the graph with nonlinear least squares to correct
+        accumulated drift and reduce trajectory uncertainty.
       </p>
       <a class="project-link" href="https://github.com/Siddhesh582/UnderwaterPhotomosaicing_SLAM" target="_blank" rel="noopener">View code →</a>
     </div>
     <div class="project-card">
       <div class="project-media">
-        <img src="images/sfm.jpg" alt="Structure from motion" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/sfm.jpg</div>'">
+        <img src="images/Buddha Reconstruction.png" alt="Structure from motion" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/sfm.jpg</div>'">
       </div>
-      <h3>Multi-View 3D Reconstruction — SfM</h3>
+      <h3>Structure-from-Motion</h3>
       <span class="project-date">December 2025</span>
       <p>
-        Full structure-from-motion pipeline: SIFT matching, RANSAC-based fundamental matrix estimation,
-        SVD and DLT triangulation, and GTSAM bundle adjustment to recover 3D structure from multi-view
-        image sets.
+        Monocular SfM pipeline built from scratch — SIFT feature matching, RANSAC-based
+        fundamental/essential matrix estimation, incremental triangulation, PnP pose estimation, and
+        GTSAM bundle adjustment for joint pose and structure refinement.
       </p>
       <a class="project-link" href="https://github.com/Siddhesh582/StructurefromMotion_pipeline.git" target="_blank" rel="noopener">View code →</a>
     </div>
@@ -1301,11 +1299,11 @@
       <div class="project-media">
         <img src="images/ekf-localization.jpg" alt="EKF vehicle localization" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/ekf-localization.jpg</div>'">
       </div>
-      <h3>Robust Vehicle Localization Using EKF: GPS-Denied Environments</h3>
+      <h3>EKF for GPS–IMU Localization</h3>
       <span class="project-date">September 2025</span>
       <p>
-        Extended Kalman Filter fusing IMU and intermittent GPS to keep a vehicle localized through
-        GPS dropouts, bridging the gaps with dead-reckoning propagation between fixes.
+        GPS–IMU localization system using an Extended Kalman Filter — fusing inertial dead reckoning
+        with intermittent GPS updates while maintaining state estimates through GPS dropouts.
       </p>
       <a class="project-link" href="https://github.com/Siddhesh582/GPS-IMU_SensorFusion_EKF" target="_blank" rel="noopener">View code →</a>
     </div>
@@ -1313,17 +1311,18 @@
       <div class="project-media">
         <img src="images/frenet-mpc.jpg" alt="Frenet-frame MPC" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/frenet-mpc.jpg</div>'">
       </div>
-      <h3>Cartesian-Frenet Based Nonlinear Model Predictive Controller</h3>
+      <h3>Frenet Nonlinear MPC</h3>
       <span class="project-date">April 2025</span>
       <p>
-        Dual-frame nonlinear MPC for trajectory tracking, formulated in CasADi/IPOPT and compared
-        across Cartesian and Frenet-frame dynamics to weigh tracking accuracy against solver cost.
+        Nonlinear model predictive controller for a unicycle AGV — optimizing vehicle motion and
+        trajectory tracking with steering constraints combining Cartesian and Frenet frames for
+        autonomous path following.
       </p>
       <a class="project-link" href="https://github.com/Siddhesh582/Cartesian-Frenet-based-MPC" target="_blank" rel="noopener">View code →</a>
     </div>
     <div class="project-card">
       <div class="project-media">
-        <img src="images/dqn-carracing.jpg" alt="DQN autonomous driving" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/dqn-carracing.jpg</div>'">
+        <img src="videos/DQN CarRacing.gif" alt="DQN autonomous driving" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/dqn-carracing.jpg</div>'">
       </div>
       <h3>Autonomous Driving with DQN in Gymnasium CarRacing</h3>
       <span class="project-date">April 2025</span>
@@ -1335,7 +1334,7 @@
     </div>
     <div class="project-card">
       <div class="project-media">
-        <img src="images/dead-reckoning.jpg" alt="Dead reckoning IMU-GPS" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/dead-reckoning.jpg</div>'">
+        <img src="images/DeadReckoning.png" alt="Dead reckoning IMU-GPS" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/dead-reckoning.jpg</div>'">
       </div>
       <h3>Dead Reckoning &amp; Sensor Evaluation of IMU-GPS</h3>
       <span class="project-date">October 2024</span>
@@ -1347,12 +1346,12 @@
     </div>
     <div class="project-card">
       <div class="project-media">
-        <img src="images/tunnel-mapping.jpg" alt="Northeastern tunnel mapping" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/tunnel-mapping.jpg</div>'">
+        <img src="images/tunnel_map_topdown.png" alt="Northeastern tunnel mapping" onerror="this.parentElement.innerHTML='<div class=&quot;project-media-placeholder&quot;>Add image/video: images/tunnel-mapping.jpg</div>'">
       </div>
       <h3>3D Visual Mapping of Northeastern Underground Tunnels</h3>
       <span class="project-date">October 2024</span>
       <p>
-        RGB-D SLAM with RTAB-Map, fusing IMU data and closing loops with G2O pose-graph optimization
+        RGB-D SLAM with RTAB-Map, fusing Zed Mini RGB Camera and ROS2 with G2O pose-graph optimization
         to reconstruct a 3D map of Northeastern's underground tunnel network.
       </p>
       <a class="project-link" href="https://github.com/Siddhesh582/3D-Mapping-of-Northeastern-Tunnels.git" target="_blank" rel="noopener">View code →</a>
@@ -1369,19 +1368,26 @@
   <div class="skill-group">
     <div class="skill-group-label">LANGUAGES &amp; FRAMEWORKS</div>
     <div class="skill-tags">
-      <span>Python</span><span>C++</span><span>ROS2</span><span>MATLAB</span><span>Git</span><span>Linux</span><span>Docker</span>
+      <span>Python</span><span>C++</span><span>ROS2</span><span>Git</span><span>Linux</span><span>Docker</span><span>MATLAB</span>
     </div>
   </div>
   <div class="skill-group">
     <div class="skill-group-label">LIBRARIES &amp; TOOLS</div>
     <div class="skill-tags">
-      <span>OpenCV</span><span>GTSAM</span><span>PyTorch</span><span>TensorFlow</span><span>CasADi / IPOPT</span><span>Open3D</span><span>CUDA</span><span>Gymnasium</span><span>Kalibr</span><span>COLMAP</span><span>Gazebo</span><span>Isaac Sim</span><span>MuJoCo</span><span>Foxglove</span>
+      <span>OpenCV</span><span>GTSAM</span><span>PyTorch</span><span>Open3D</span><span>CUDA</span><span>Gymnasium</span><span>Kalibr</span><span>COLMAP</span><span>Gazebo</span><span>Isaac Sim</span><span>MuJoCo</span><span>Foxglove</span><span>CasADi / IPOPT</span>
     </div>
   </div>
   <div class="skill-group">
     <div class="skill-group-label">HARDWARE</div>
     <div class="skill-tags">
-      <span>u-blox GNSS (GPS/RTK)</span><span>VectorNav VN-100 IMU</span><span>FLIR Blackfly S</span><span>RealSense D435i</span><span>Unitree Hesai LiDAR</span><span>Boston Dynamics Spot</span><span>Unitree G1 / Go2W / Go2</span>
+      <span>FLIR Blackfly S BFS-U3-50S4C-C</span>
+      <span>Ouster OS1-32-U LiDAR</span>
+      <span>u-blox ZED-F9T GNSS</span>
+      <span>VectorNav IMU</span>
+      <span>RealSense D435i</span>
+      <span>Unitree Hesai LiDAR</span>
+      <span>Boston Dynamics Spot</span>
+      <span>Unitree G1 / Go2W / Go2</span>
     </div>
   </div>
   <div class="skill-group">
